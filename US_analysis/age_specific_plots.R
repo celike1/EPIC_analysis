@@ -1,3 +1,4 @@
+# This code helps you make plots for each specific age. For example you can compare the US census vs EPIC projections for 40 year olds.
 library(epicUS)
 library(tidyverse)
 library(ggplot2)
@@ -7,18 +8,16 @@ library(dplyr)
 library(tidyr)
 
 
-USSimulation <- read_csv("USSimulation.csv")
-USlifetables <- read_csv("USLifeTables.csv", col_names = FALSE) %>% mutate(across(everything(), as.numeric))
+USSimulation <- read_csv("US_analysis/data/USSimulation.csv")
 
 settings <- get_default_settings()
 settings$record_mode <- 0
 settings$n_base_agents <- settings$n_base_agents
 init_session(settings = settings)
 
-input <- Cget_inputs()
+input <- get_input()
 time_horizon <- 56
 input$values$global_parameters$time_horizon <- time_horizon
-input$values$agent$p_bgd_by_sex <- as.matrix(USlifetables)
 
 input$values$agent$l_inc_betas <- c(-3.5,0.002,0.00001)
 

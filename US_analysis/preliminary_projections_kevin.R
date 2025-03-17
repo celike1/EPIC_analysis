@@ -1,4 +1,4 @@
-library(epicR)
+library(epicUS)
 library(tidyverse)
 library(ggplot2)
 library(ggthemes)
@@ -7,8 +7,8 @@ library(dplyr)
 library(tidyr)
 
 # load US population validation targets
-USSimulation <-read.csv("USSimulation.csv", header = TRUE)
-USlifetables <-read.csv("USLifeTables.csv", header = FALSE)
+USSimulation <-read.csv("US_analysis/data/USSimulation.csv", header = TRUE)
+USlifetables <-read.csv("US_analysis/data/USLifeTables.csv", header = FALSE)
 USlifetables_num <- as.matrix(USlifetables)
 USlifetables_num <- apply(USlifetables_num, 2, as.numeric)
 
@@ -17,9 +17,8 @@ USlifetables_num <- apply(USlifetables_num, 2, as.numeric)
 settings<- get_default_settings()
 settings$record_mode <- 0
 n_sim <- settings$n_base_agents
-# n_sim <- 100000
 init_session(settings = settings)
-input <- Cget_inputs()
+input <- get_input()
 
 ## set time horizon
 time_horizon <- 56

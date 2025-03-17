@@ -3,7 +3,7 @@ library(ggplot2)
 library(dplyr)
 
 # US population 2022 onwards,
-US_pop <- read.csv("US_census_pop_by_age.csv", header = TRUE)
+US_pop <- read.csv("US_analysis/data/US_census_pop_by_age.csv", header = TRUE)
 
 colnames(US_pop) <- gsub('X', '', colnames(US_pop))
 US_pop[, 1] <- gsub("^\\.", "", US_pop[, 1])
@@ -43,7 +43,7 @@ US_pop65 <- US_pop65 %>%
 
 
 
-pop2015<- read.csv("2015pop.csv", header = TRUE)
+pop2015<- read.csv("US_analysis/data/2015pop.csv", header = TRUE)
 
 pop2015 <- pop2015 %>%
   mutate(Age_Range = cut(AGE,

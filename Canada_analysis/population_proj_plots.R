@@ -1,4 +1,5 @@
-library(epicUS)
+# In this file, I am checking if the underprediction for older ages is a trend in Canada (epicR) as well. And it is.
+library(epicR)
 library(tidyverse)
 library(ggplot2)
 library(ggthemes)
@@ -7,20 +8,17 @@ library(dplyr)
 library(tidyr)
 
 
-USSimulation <- read_csv("USSimulation.csv")
-USlifetables <- read_csv("USLifeTables.csv", col_names = FALSE) %>% mutate(across(everything(), as.numeric))
+CanSim <- read_csv("Canada_analysis/data/CanSim.052.0005.csv")
+CanSim$value <- CanSim$value * 10000
 
 settings <- get_default_settings()
 settings$record_mode <- 0
-settings$n_base_agents <- settings$n_base_agents  # Ensure default setting
+settings$n_base_agents <- 100000
 init_session(settings = settings)
 
-input <- Cget_inputs()
-time_horizon <- 56
+input <- get_input()
+time_horizon <- 40
 input$values$global_parameters$time_horizon <- time_horizon
-input$values$agent$p_bgd_by_sex <- as.matrix(USlifetables)
-
-input$values$agent$l_inc_betas <- c(-3.5,0.002,0.00001)
 
 run(input = input$values)
 output <- Cget_output_ex()
@@ -36,10 +34,10 @@ epic_popsize_age_long <- epic_popsize_age %>%
   mutate(age=as.integer(age))
 
 
-validate_pop_size_scaled <- USSimulation %>%
-  rename(US_popsize = value) %>%
+validate_pop_size_scaled <- CanSim %>%
+  rename(Canada_popsize = value) %>%
   left_join(epic_popsize_age_long, by = c("year", "age")) %>%
-  mutate(EPIC_output_scaled = ifelse(year == 2015, US_popsize, NA))
+  mutate(EPIC_output_scaled = ifelse(year == 2015, Canada_popsize, NA))
 
 
 total_epic_by_year <- validate_pop_size_scaled %>%
@@ -54,19 +52,16 @@ df_with_growth <- validate_pop_size_scaled %>%
   arrange(year, age) %>%
   group_by(age) %>%
   mutate(
-    EPIC_output_scaled = ifelse(year == 2015, US_popsize, NA),
-    EPIC_output_scaled = replace_na(EPIC_output_scaled, first(US_popsize)) *
+    EPIC_output_scaled = ifelse(year == 2015, Canada_popsize, NA),
+    EPIC_output_scaled = replace_na(EPIC_output_scaled, first(Canada_popsize)) *
       cumprod(replace_na(growth_rate, 1))
   )
 
-df_with_growth_prop <- df_with_growth %>%
-  mutate(
-    US_pop_proportion = US_popsize / sum(US_popsize),
-    EPIC_pop_proportion = EPIC_popsize / sum(EPIC_popsize)
-  )
+
+#####scaled
 
 
-df_with_growth_prop_age_grouped <- df_with_growth_prop %>%
+df_with_growth_age_grouped <- df_with_growth %>%
   mutate(age_group = cut(age, breaks = c(seq(40, 100, by = 5), Inf),
                          include.lowest = TRUE, right = FALSE,
                          labels = c(paste(seq(40, 95, by = 5), seq(44, 99, by = 5), sep = "-"), "100+"))) %>%
@@ -75,15 +70,15 @@ df_with_growth_prop_age_grouped <- df_with_growth_prop %>%
                                        "70-74", "75-79", "80-84", "85-89", "90-94", "95-99", "100+"),
                             ordered = TRUE)) %>%
   group_by(year, age_group) %>%
-  summarise(EPIC_pop_proportion = sum(EPIC_pop_proportion, na.rm = TRUE),
-            US_pop_proportion = sum(US_pop_proportion, na.rm = TRUE)) %>%
+  summarise(EPIC_output_scaled = sum(EPIC_output_scaled, na.rm = TRUE),
+            Canada_popsize = sum(Canada_popsize, na.rm = TRUE)) %>%
   ungroup()
 
 
-df_plot <- df_with_growth_prop_age_grouped %>%
+df_plot <- df_with_growth_age_grouped %>%
   filter(year <= 2050, age_group == "40-44") %>%
-  select(year, US_pop_proportion, EPIC_pop_proportion, age_group) %>%
-  pivot_longer(cols = c(US_pop_proportion, EPIC_pop_proportion),
+  select(year, Canada_popsize, EPIC_output_scaled, age_group) %>%
+  pivot_longer(cols = c(Canada_popsize, EPIC_output_scaled),
                names_to = "Population_Type",
                values_to = "Population")
 
@@ -100,11 +95,13 @@ p <- ggplot(df_plot, aes(x = year, y = Population, color = Population_Type)) +
   )+
   facet_wrap(~ age_group)
 
+# Display the plot
+print(p)
 
-df_plot2 <- df_with_growth_prop_age_grouped %>%
+df_plot2 <- df_with_growth_age_grouped %>%
   filter(year <= 2050) %>%
-  select(year, US_pop_proportion, EPIC_pop_proportion, age_group) %>%
-  pivot_longer(cols = c(US_pop_proportion, EPIC_pop_proportion),
+  select(year, Canada_popsize, EPIC_output_scaled, age_group) %>%
+  pivot_longer(cols = c(Canada_popsize, EPIC_output_scaled),
                names_to = "Population_Type",
                values_to = "Population")
 
@@ -116,12 +113,16 @@ for (age in unique_age_groups) {
     geom_line(linewidth = 1.2) +
     geom_point(size = 2) +
     theme_tufte(base_size = 14, ticks = FALSE) +
-    ggtitle(paste("EPIC vs. US Population Over Time for", age)) +
+    ggtitle(paste("EPIC vs. Canada Population Over Time for", age)) +
     scale_y_continuous(name = "Population", labels = scales::comma) +
-    scale_x_continuous(name = "Year", breaks = seq(min(df_plot$year), max(df_plot$year), by = 2)) +
+    scale_x_continuous(name = "Year", breaks = seq(min(df_plot$year), max(df_plot$year), by = 2))
     theme(legend.title = element_blank(), legend.position = "bottom")
 
   print(p)
   Sys.sleep(2)
 }
+
+
+
+
 

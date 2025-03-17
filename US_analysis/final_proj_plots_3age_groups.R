@@ -9,25 +9,23 @@ library(tidyr)
 
 
 USSimulation <- read_csv("USSimulation.csv")
-USlifetables <- read_csv("USLifeTables.csv", col_names = FALSE) %>% mutate(across(everything(), as.numeric))
 
 settings <- get_default_settings()
 settings$record_mode <- 0
 settings$n_base_agents <- settings$n_base_agents
 init_session(settings = settings)
 
-input <- Cget_inputs()
+input <- get_input()
 time_horizon <- 56
 input$values$global_parameters$time_horizon <- time_horizon
-input$values$agent$p_bgd_by_sex <- as.matrix(USlifetables)
 
 
 # input$values$agent$l_inc_betas <- c(-3.5,0.002,0.00001)
-input$values$agent$l_inc_betas <- c(-3.50335670331894, 0.000198047130526806, -8.73486088407498e-07)
+input$values$agent$l_inc_betas <- c(-3.5,0.002,0.00001)
 
 
 # intercept, y, y2, age
-input$values$agent$ln_h_bgd_betas <- c(intercept = -1.31815364201945e-08, y = -0.01, y2 = 0, age = 0, b_mi = 0, n_mi = 0, b_stroke = 0,
+input$values$agent$ln_h_bgd_betas <- c(intercept = 0, y = -0.025, y2 = 0, age = -0.001, b_mi = 0, n_mi = 0, b_stroke = 0,
                                        n_stroke = 0, hf = 0)
 
 

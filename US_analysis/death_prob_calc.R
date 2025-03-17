@@ -6,7 +6,7 @@ library(tidyr)
 settings <- get_default_settings()
 settings$record_mode <- 2
 # settings$agent_stack_size <- 0
-settings$n_base_agents <- 1e6
+settings$n_base_agents <- 1e5
 # settings$event_stack_size <- 0
 
 init_session(settings = settings)
@@ -14,8 +14,9 @@ init_session(settings = settings)
 input <- get_input()
 
 # set time horizon
-time_horizon <- 1
+time_horizon <- 10
 input$values$global_parameters$time_horizon <- time_horizon
+
 
 run(input = input$values)
 events <- as.data.frame(Cget_all_events_matrix())
@@ -25,14 +26,14 @@ terminate_session()
 unique(events$event)
 table(events$event)
 
+
 # rounding down so we can create a group.
 events <- events %>%
   mutate(age_and_local = floor(local_time + age_at_creation))
 
 
 age_info<-events %>%
-  mutate(age_and_local = floor(local_time + age_at_creation)) %>%
-  group_by(age_and_local,female) %>%
+  group_by(id, age_and_local,female) %>%
   summarise(count = n())
 
 events_filtered<- events %>%
@@ -42,6 +43,18 @@ events_filtered<- events %>%
   filter(event==14) %>%
   ungroup()
 
+# events_filtered<- events %>%
+#   mutate(death= ifelse(event==13,1,0)) %>%
+#   filter(age_and_local ==40)
+
+death_prob2<- events_filtered %>%
+  group_by(age_and_local, female) %>%
+  summarise(
+    total_count = n(),
+    death_count = sum(ever_death==1),
+    death_probability = death_count / total_count
+  )
+
 
 death_prob<- events_filtered %>%
   group_by(age_and_local, female) %>%
@@ -50,6 +63,8 @@ death_prob<- events_filtered %>%
     death_count = sum(ever_death==1),
     death_probability = death_count / total_count
   )
+
+
 # %>%
 #   ungroup() %>%
 #   select(age_and_local, female, death_probability) %>%

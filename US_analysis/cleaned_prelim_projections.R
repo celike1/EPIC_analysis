@@ -1,27 +1,27 @@
+# In this R file I cleaned the code Kevin sent me in preliminary_projections_kevin.R
 library(tidyverse)
 library(epicUS)
 library(ggthemes)
 library(scales)
 
 # Load US population validation targets
-USSimulation <- read_csv("USSimulation.csv")
-USlifetables <- read_csv("USLifeTables.csv", col_names = FALSE) %>% mutate(across(everything(), as.numeric))
+USSimulation <- read_csv("US_analysis/data/USSimulation.csv")
+USlifetables <- read_csv("US_analysis/data/USLifeTables.csv", col_names = FALSE) %>% mutate(across(everything(), as.numeric))
 
 # Load EPIC and configure settings
 settings <- get_default_settings()
 settings$record_mode <- 0
-settings$n_base_agents <- settings$n_base_agents  # Ensure default setting
+settings$n_base_agents <- settings$n_base_agents
 init_session(settings = settings)
 
-input <- Cget_inputs()
+input <- get_input()
 time_horizon <- 56
 input$values$global_parameters$time_horizon <- time_horizon
 input$values$agent$p_bgd_by_sex <- as.matrix(USlifetables)
 
 # Set growth rate calibration
-input$values$agent$l_inc_betas <- c(-3.4,0.0002,0.000001)
-input$values$agent$ln_h_bgd_betas <- c(intercept = 0, y = -0.015, y2 = 0, age = 0, b_mi = 0, n_mi = 0, b_stroke = 0,
-                                       n_stroke = 0, hf = 0)
+input$values$agent$l_inc_betas <- c(-3.5,0.002,0.00001)
+
 
 # Run EPIC simulation
 run(input = input$values)

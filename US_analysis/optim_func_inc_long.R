@@ -1,15 +1,14 @@
+# This code performs optimization for both l_inc_betas and ln_h_bgd_betas
 library(epicUS)
 library(tidyverse)
-library(nloptr)
 
-USSimulation <- read_csv("USSimulation.csv")
-USlifetables <- read_csv("USLifeTables.csv", col_names = FALSE) %>% mutate(across(everything(), as.numeric))
+USSimulation <- read_csv("US_analysis/data/USSimulation.csv")
 
 settings <- get_default_settings()
 settings$record_mode <- 0
 settings$n_base_agents <- settings$n_base_agents
 
-input <- Cget_inputs()
+input <- get_input()
 time_horizon <- 56
 input$values$global_parameters$time_horizon <- time_horizon
 

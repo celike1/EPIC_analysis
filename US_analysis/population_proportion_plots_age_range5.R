@@ -1,3 +1,4 @@
+# This code generates population proportion plots with 5 year age intervals
 library(epicUS)
 library(tidyverse)
 library(ggplot2)
@@ -7,18 +8,16 @@ library(dplyr)
 library(tidyr)
 
 
-USSimulation <- read_csv("USSimulation.csv")
-# USlifetables <- read_csv("USLifeTables.csv", col_names = FALSE) %>% mutate(across(everything(), as.numeric))
+USSimulation <- read_csv("US_analysis/data/USSimulation.csv")
 
 settings <- get_default_settings()
 settings$record_mode <- 0
-settings$n_base_agents <- settings$n_base_agents  # Ensure default setting
+settings$n_base_agents <- settings$n_base_agents
 init_session(settings = settings)
 
-input <- Cget_inputs()
+input <- get_input()
 time_horizon <- 56
 input$values$global_parameters$time_horizon <- time_horizon
-# input$values$agent$p_bgd_by_sex <- as.matrix(USlifetables)
 
 input$values$agent$l_inc_betas <- c(-3.5,0.002,0.00001)
 
@@ -59,8 +58,14 @@ df_with_growth <- validate_pop_size_scaled %>%
       cumprod(replace_na(growth_rate, 1))
   )
 
+df_with_growth_prop <- df_with_growth %>%
+  mutate(
+    US_pop_proportion = US_popsize / sum(US_popsize),
+    EPIC_pop_proportion = EPIC_popsize / sum(EPIC_popsize)
+  )
 
-df_with_growth_age_grouped <- df_with_growth %>%
+
+df_with_growth_prop_age_grouped <- df_with_growth_prop %>%
   mutate(age_group = cut(age, breaks = c(seq(40, 100, by = 5), Inf),
                          include.lowest = TRUE, right = FALSE,
                          labels = c(paste(seq(40, 95, by = 5), seq(44, 99, by = 5), sep = "-"), "100+"))) %>%
@@ -69,60 +74,33 @@ df_with_growth_age_grouped <- df_with_growth %>%
                                        "70-74", "75-79", "80-84", "85-89", "90-94", "95-99", "100+"),
                             ordered = TRUE)) %>%
   group_by(year, age_group) %>%
-  summarise(EPIC_output_scaled = sum(EPIC_output_scaled, na.rm = TRUE),
-            US_popsize = sum(US_popsize, na.rm = TRUE)) %>%
+  summarise(EPIC_pop_proportion = sum(EPIC_pop_proportion, na.rm = TRUE),
+            US_pop_proportion = sum(US_pop_proportion, na.rm = TRUE)) %>%
   ungroup()
 
 
-df_plot <- df_with_growth_age_grouped %>%
-  filter(year <= 2050, age_group == "40-44") %>%
-  select(year, US_popsize, EPIC_output_scaled, age_group) %>%
-  pivot_longer(cols = c(US_popsize, EPIC_output_scaled),
-               names_to = "Population_Type",
-               values_to = "Population")
-
-p <- ggplot(df_plot, aes(x = year, y = Population, color = Population_Type)) +
-  geom_line(linewidth = 1.2) +
-  geom_point(size = 2) +  # Points to highlight years
-  theme_tufte(base_size = 14, ticks = FALSE) +
-  ggtitle("Comparison of EPIC vs. US Population Over Time (Grouped by Age Ranges)") +
-  scale_y_continuous(name = "Population", labels = comma) +
-  scale_x_continuous(name = "Year", breaks = seq(min(df_plot$year), max(df_plot$year), by = 2)) +
-  theme(
-    legend.title = element_blank(),
-    legend.position = "bottom"
-  )+
-  facet_wrap(~ age_group)
-
-# Display the plot
-print(p)
-
-df_plot2 <- df_with_growth_age_grouped %>%
+df_plot <- df_with_growth_prop_age_grouped %>%
   filter(year <= 2050) %>%
-  select(year, US_popsize, EPIC_output_scaled, age_group) %>%
-  pivot_longer(cols = c(US_popsize, EPIC_output_scaled),
+  select(year, US_pop_proportion, EPIC_pop_proportion, age_group) %>%
+  pivot_longer(cols = c(US_pop_proportion, EPIC_pop_proportion),
                names_to = "Population_Type",
                values_to = "Population")
 
-unique_age_groups <- unique(df_plot2$age_group)
+unique_age_groups <- unique(df_plot$age_group)
 
 for (age in unique_age_groups) {
-  p <- ggplot(df_plot2 %>% filter(age_group == age),
+  p <- ggplot(df_plot %>% filter(age_group == age),
               aes(x = year, y = Population, color = Population_Type)) +
     geom_line(linewidth = 1.2) +
     geom_point(size = 2) +
     theme_tufte(base_size = 14, ticks = FALSE) +
     ggtitle(paste("EPIC vs. US Population Over Time for", age)) +
-    scale_y_continuous(name = "Population", labels = scales::comma) +
+    scale_y_continuous(name = "Population Proportion", labels = scales::comma) +
     scale_x_continuous(name = "Year", breaks = seq(min(df_plot$year), max(df_plot$year), by = 2)) +
-    expand_limits(y=0) +
+    expand_limits(y = 0) +
     theme(legend.title = element_blank(), legend.position = "bottom")
 
   print(p)
   Sys.sleep(2)
 }
-
-
-
-
 

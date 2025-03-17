@@ -1,18 +1,17 @@
+# This code performs optimization for l_inc_betas parameters only.
 library(epicUS)
 library(tidyverse)
 library(nloptr)
 
 USSimulation <- read_csv("USSimulation.csv")
-USlifetables <- read_csv("USLifeTables.csv", col_names = FALSE) %>% mutate(across(everything(), as.numeric))
 
 settings <- get_default_settings()
 settings$record_mode <- 0
 settings$n_base_agents <- settings$n_base_agents
 
-input <- Cget_inputs()
+input <- get_input()
 time_horizon <- 56
 input$values$global_parameters$time_horizon <- time_horizon
-input$values$agent$p_bgd_by_sex <- as.matrix(USlifetables)
 
 # census data
 total_population <- USSimulation %>%
@@ -67,7 +66,7 @@ initial_guess <- c(-3.50,0.0005,-0.000001)
 
 # here i am using L-BFGS-B because RMSE is a differentiable function
 # we can define lower and upper bounds,
-#more memory efficient in BFGS, making it suitable for large parameter spaces.
+# more memory efficient in BFGS, making it suitable for large parameter spaces.
 result_optim <- optim(
   par = initial_guess,
   fn = calculate_rmse_optim,
@@ -75,8 +74,6 @@ result_optim <- optim(
   method = "L-BFGS-B",
   control = list(maxit = 20)
 )
-
-
 
 
 print(paste("Optimal Growth Rate:", result_optim$par))
