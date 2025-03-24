@@ -105,7 +105,6 @@ run_mortality_simulation <- function(n_agents = 1e6, time_horizon = 10) {
   return(mortality_rate_df)
 }
 
-# Example usage: Adjust number of agents as needed
 mortality_data1 <- run_mortality_simulation(n_agents = 1e6)
 mortality_data2 <-run_mortality_simulation(n_agents = 1e7)
 mortality_data3 <-run_mortality_simulation(n_agents = 3e7)
@@ -130,7 +129,6 @@ viz_EPICvsUS<- function (epic_data){
 
   common_ages <- intersect(epic_data$Age, USlifetables_df$Age)
 
-  # filter both so only incmortality_data1# filter both so only include the rows with matching Age
   EPIC_filtered <- epic_data[epic_data$Age %in% common_ages, ]
   USlifetables_filtered <- USlifetables_df[USlifetables_df$Age %in% common_ages, ]
 
@@ -192,7 +190,6 @@ calculateRMSE <- function(epic_data) {
 }
 
 
-# Example usage
 rmse_results <- calculateRMSE(mortality_data3)
 print(rmse_results)
 
