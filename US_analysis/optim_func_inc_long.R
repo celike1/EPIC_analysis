@@ -78,10 +78,10 @@ calculate_rmse_optim <- function(params) {
     mutate(
       age_group = case_when(
         age >= 40 & age <= 59 ~ "40-59",
-        age >= 60 & age <= 79 ~ "60-79",
-        age >= 80 ~ "80+"
+        age >= 60 & age <= 79 ~ "60-79"
       )
     ) %>%
+    filter(age_group %in% c("40-59", "60-79")) %>%
     group_by(year, age_group) %>%
     summarise(total_EPIC_population = sum(EPIC_output_scaled, na.rm = TRUE),
               total_US_population = sum(US_popsize, na.rm = TRUE))
@@ -104,10 +104,10 @@ calculate_rmse_optim <- function(params) {
 }
 
 
-initial_guess <- c(-3.5, 0.0002, -0.000001, 0, -0.25, 0, 0)
+initial_guess <- c(-3.5, 0.0005, -0.00005, 0, -0.025, 0, 0)
 
-lower_bounds <- c(-3.8, 0.0001, -0.0001, -0.05, -0.01, -0.05, -0.05)
-upper_bounds <- c(-3.4, 0.01, 0, 0, 0, 0, 0)
+lower_bounds <- c(-3.6, 0.0001, -0.0001, -0.0005, -0.0001, -0.0005, -0.0005)
+upper_bounds <- c(-3.45, 0.01, 0, 0, 0, 0, 0)
 
 
 # here i am using L-BFGS-B because RMSE is a differentiable function
@@ -119,10 +119,10 @@ result_optim <- optim(
   lower = lower_bounds,
   upper = upper_bounds,
   method = "L-BFGS-B",
-  control = list(maxit = 50)
+  control = list(maxit = 20, iterlim = 3)
 )
-
 
 print(paste("Optimal Growth Rate:", result_optim$par))
 print(paste("Optimized RMSE:", result_optim$value))
+
 

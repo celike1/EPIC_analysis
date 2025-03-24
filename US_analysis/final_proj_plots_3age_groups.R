@@ -8,7 +8,7 @@ library(dplyr)
 library(tidyr)
 
 
-USSimulation <- read_csv("USSimulation.csv")
+USSimulation <- read_csv("US_analysis/data/USSimulation.csv")
 
 settings <- get_default_settings()
 settings$record_mode <- 0
@@ -21,11 +21,12 @@ input$values$global_parameters$time_horizon <- time_horizon
 
 
 # input$values$agent$l_inc_betas <- c(-3.5,0.002,0.00001)
-input$values$agent$l_inc_betas <- c(-3.5,0.002,0.00001)
+params <- c(-3.48672063032448, 0.00202274171887977, -4.37035899506131e-05, 0, -1e-04, 0, -0.000132065698144107)
+input$values$agent$l_inc_betas <- c(params[1], params[2], params[3])
 
 
 # intercept, y, y2, age
-input$values$agent$ln_h_bgd_betas <- c(intercept = 0, y = -0.025, y2 = 0, age = -0.001, b_mi = 0, n_mi = 0, b_stroke = 0,
+input$values$agent$ln_h_bgd_betas <- c(params[4], params[5], params[6], params[7], b_mi = 0, n_mi = 0, b_stroke = 0,
                                        n_stroke = 0, hf = 0)
 
 
