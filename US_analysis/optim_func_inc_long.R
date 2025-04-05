@@ -12,6 +12,9 @@ input <- get_input()
 time_horizon <- 56
 input$values$global_parameters$time_horizon <- time_horizon
 
+input$values$smoking$mortality_factor_former<- c(age40to49=1,age50to59=1,age60to69=1,age70to79=1,age80p=1)
+input$values$smoking$mortality_factor_current<- c(age40to49=1,age50to59=1,age60to69=1,age70to79=1,age80p=1)
+
 
 # RMSE function for optimization
 calculate_rmse_optim <- function(params) {
@@ -78,10 +81,11 @@ calculate_rmse_optim <- function(params) {
     mutate(
       age_group = case_when(
         age >= 40 & age <= 59 ~ "40-59",
-        age >= 60 & age <= 79 ~ "60-79"
+        age >= 60 & age <= 79 ~ "60-79",
+        age >=80 ~ "80+"
       )
     ) %>%
-    filter(age_group %in% c("40-59", "60-79")) %>%
+    #filter(age_group %in% c("40-59", "60-79")) %>%
     group_by(year, age_group) %>%
     summarise(total_EPIC_population = sum(EPIC_output_scaled, na.rm = TRUE),
               total_US_population = sum(US_popsize, na.rm = TRUE))

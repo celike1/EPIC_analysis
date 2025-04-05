@@ -6,7 +6,7 @@ library(tidyr)
 settings <- get_default_settings()
 settings$record_mode <- 2
 # settings$agent_stack_size <- 0
-settings$n_base_agents <- 1e5
+settings$n_base_agents <- 1e6
 # settings$event_stack_size <- 0
 
 init_session(settings = settings)
@@ -14,7 +14,7 @@ init_session(settings = settings)
 input <- get_input()
 
 # set time horizon
-time_horizon <- 10
+time_horizon <- 1
 input$values$global_parameters$time_horizon <- time_horizon
 
 

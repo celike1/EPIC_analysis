@@ -1,6 +1,7 @@
 # In this R file I cleaned the code Kevin sent me in preliminary_projections_kevin.R
 library(tidyverse)
 library(epicUS)
+packageVersion(("epicUS"))
 library(ggthemes)
 library(scales)
 

@@ -114,3 +114,7 @@ for(age_grp in unique(df_summed_ranges$age_group)) {
   Sys.sleep(2)
 }
 
+
+print(rmse_per_range)
+
+
